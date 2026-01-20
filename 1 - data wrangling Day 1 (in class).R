@@ -27,7 +27,7 @@ df |>
 
 # calculate a new column,weight_lbs = mass * 2.204623
 # Make sure it gets saved to the tibble...
-df |> 
+df <- df |> 
   mutate(weight_lbs = mass * 2.204623) |> 
   # mutate(mass = mass * 2.204623) |>  -- this assigns the variable back to the same column! Does not affect the original df
   glimpse()
@@ -37,9 +37,15 @@ df |>
 # get a count and mean mass by species
 
 df |> 
+  select(species, mass, weight_lbs) |>
+  filter(!is.na(species)) |> 
   group_by(species) |> 
   summarize(count = n(),
-            mean_mass = mean(mass))
+            mass_avg = mean(mass, na.rm = TRUE),
+            weight_avg = mean(weight_lbs, na.rm = TRUE),
+            mass_max= max(mass, na.rm = TRUE),
+            count_nas = sum(is.na(mass))) |> 
+  arrange(desc(weight_avg))
 
 # Lots of NAs for average... why? Even for large groups it's NA...
 
@@ -49,6 +55,18 @@ df |>
 
 # so let's exclude NAs from the mean aggregation:
 
+df |> 
+  select(name,species, mass, weight_lbs) |>
+  filter(!is.na(species)) |> 
+  group_by(species) |>
+  mutate(count = n(),
+         mass_avg = mean(mass, na.rm = T)) |> 
+  mutate(diff_from_mean = mass_avg - mass)
+
+df |> 
+  select(name, species, mass) |> 
+  group_by(species) |> 
+  slice_max(mass, n = 1)
 
 
 
